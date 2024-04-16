@@ -10,6 +10,7 @@ import yaml
 import os
 from datetime import datetime
 import telebot
+import threading
 #Ham get config
 def get_config():
         if os.path.isfile('config.yml'):
@@ -44,7 +45,7 @@ def sma(data_ohlc, period_count ):
 #ham tính rsi
 def rsi_adv(data_ohlc, period_count = 10):
     point_rsi = 0
-    msg = ""
+    msg = "--RSI ADV-- \n"
     close_data = numpy.array(data_ohlc['close'])
     rsi_data = tulipy.rsi(close_data,period_count)
     ma_rsi2  = tulipy.sma(rsi_data, 2)
@@ -81,7 +82,7 @@ def ema(data_ohlc, period_count ):
 #ham xet ema
 def ema_adv(data_ohlc):
     point_ema = 0
-    msg_ema = ""
+    msg_ema = "--EMA-- \n"
     ema_89 = ema(data_ohlc, 89)
     ema_200 = ema(data_ohlc, 200)
     #Xet ema 89
@@ -108,9 +109,30 @@ def ema_adv(data_ohlc):
 def send_noti(message, conf):
     tb = telebot.TeleBot(conf['token'])
     tb.send_message(conf['chat_id'], message)
-def main():
-    conf = get_config()
-    binance = ccxt.binance()
+    print("Send success")
+
+def timeframe_5m(conf, binance):
+    #conf = get_config()
+    #binance = ccxt.binance()
+    while True:
+        for market_pairs in conf['market_pairs']:
+            data_ohlc = get_price(binance, market_pairs, "5m", 210)
+            point_rsi, msg_rsi = rsi_adv(data_ohlc)
+            point_ema, msg_ema = ema_adv(data_ohlc)
+            point = point_rsi + point_ema
+            price = data_ohlc.iloc[-1]['close']
+            if point_rsi > 0 and point_ema > 0:
+                msg = market_pairs + "- Point: " + str(point) + "- Price: " + str(price) + msg_rsi + msg_ema
+                send_noti(msg, conf['telegram'])
+            elif point_rsi < 0 and point_ema < 0:
+                msg = market_pairs + "- Point: " + str(point) + "- Price: " + str(price) + msg_rsi + msg_ema
+                send_noti(msg, conf['telegram'])
+        print("Sleeping - timeframe 5m")
+        time.sleep(60)
+
+def timeframe_15m(conf, binance):
+    #conf = get_config()
+    #binance = ccxt.binance()
     while True:
         for market_pairs in conf['market_pairs']:
             data_ohlc = get_price(binance, market_pairs, "15m", 210)
@@ -120,17 +142,39 @@ def main():
             price = data_ohlc.iloc[-1]['close']
             if point > 1:
                 msg = market_pairs + "- Point: " + str(point) + "- Price: " + str(price) + msg_rsi + msg_ema
-                send_noti(msg)
+                send_noti(msg, conf['telegram'])
             elif point < -1:
                 msg = market_pairs + "- Point: " + str(point) + "- Price: " + str(price) + msg_rsi + msg_ema
                 send_noti(msg,conf['telegram'])
-        print("Sleeping for 60 seconds")
-        time.sleep(300)
+        print("Sleeping - Time frame 15m")
+        time.sleep(120)
+
+#def main():
+    #conf = get_config()
+    #binance = ccxt.binance()
+    #while True:
+
+    #p1 = threading.Thread(target=timeframe_5m, args=(conf,binance))
+    #p1.start()
+    #p2 = threading.Thread(target=timeframe_15m, args=(conf,binance))
+    #p2.start()
+
 if __name__ == "__main__":
     try:
-        main()
-    except KeyboardInterrupt:
-        sys.exit(0)
+ 
+        conf = get_config()
+        binance = ccxt.binance()
+        p1 = threading.Thread(target=timeframe_5m, args=(conf,binance))
+        p1.daemon = True
+        p1.start()
+        p2 = threading.Thread(target=timeframe_15m, args=(conf,binance))
+        p2.daemon = True
+        p2.start()
+        while True:
+            time.sleep(100)
+
+    except (KeyboardInterrupt, SystemExit):
+        print('Received keyboard interrupt, quitting threads.')
 
 
 

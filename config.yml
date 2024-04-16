@@ -3,6 +3,12 @@
     - BTCUSDT
     - ETHUSDT
     - BNBUSDT
+    - SOLUSDT
+    - DOGEUSDT
+    - ADAUSDT
+    - AVAXUSDT
+    - BCHUSDT
+    - DOTUSDT
   
   telegram:
       token: 6876880823:AAGUBGPChJqvMGYb_lVO5tvrDmlWc0H_YN0
