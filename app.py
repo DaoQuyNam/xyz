@@ -128,7 +128,7 @@ def timeframe_5m(conf, binance):
                 msg = market_pairs + "- Point: " + str(point) + "- Price: " + str(price) + msg_rsi + msg_ema
                 send_noti(msg, conf['telegram'])
         print("Sleeping - timeframe 5m")
-        time.sleep(60)
+        time.sleep(100)
 
 def timeframe_15m(conf, binance):
     #conf = get_config()
@@ -147,7 +147,7 @@ def timeframe_15m(conf, binance):
                 msg = market_pairs + "- Point: " + str(point) + "- Price: " + str(price) + msg_rsi + msg_ema
                 send_noti(msg,conf['telegram'])
         print("Sleeping - Time frame 15m")
-        time.sleep(120)
+        time.sleep(300)
 
 #def main():
     #conf = get_config()
