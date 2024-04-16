@@ -1,0 +1,9 @@
+
+  market_pairs:
+    - BTCUSDT
+    - ETHUSDT
+    - BNBUSDT
+  
+  telegram:
+      token: 6876880823:AAGUBGPChJqvMGYb_lVO5tvrDmlWc0H_YN0
+      chat_id: -4144251870
