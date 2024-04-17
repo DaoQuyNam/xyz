@@ -69,7 +69,8 @@ def rsi_adv(data_ohlc, period_count = 10):
         if (max(ma_rsi2[-2],ma_rsi2[-3]) - ma_rsi2[-1]) > 6.8:
             point_rsi = point_rsi - 0.5
             msg = msg + "\n 🔴 MA2_RSI giảm: " + str(max(ma_rsi2[-2],ma_rsi2[-3]) - ma_rsi2[-1])
-
+    #print("--RSI--")
+    #print(msg)
     return [point_rsi, msg]
     
  
@@ -87,7 +88,7 @@ def ema_adv(data_ohlc):
     ema_200 = ema(data_ohlc, 200)
     #Xet ema 89
     price_close = data_ohlc.iloc[-1]['close']
-    price_open = data_ohlc.iloc[-1]['close']
+    price_open = data_ohlc.iloc[-1]['open']
     # Cắt lên ema 89 - Long
     if price_open < ema_89[-1] < price_close:
         point_ema = point_ema + 0.5
@@ -104,6 +105,8 @@ def ema_adv(data_ohlc):
     if price_close < ema_200[-1] < price_open:
         point_ema = point_ema - 0.5
         msg_ema = msg_ema + "\n 🔴 Giá căt xuống EMA 89: " + str(ema_200[-1])
+    #print("--EMA--")
+    #print(msg_ema)
     return [point_ema, msg_ema]
 #hàm send noti        
 def send_noti(message, conf):
@@ -122,10 +125,10 @@ def timeframe_5m(conf, binance):
             point = point_rsi + point_ema
             price = data_ohlc.iloc[-1]['close']
             if point_rsi > 0 and point_ema > 0:
-                msg = market_pairs + "- Point: " + str(point) + "- Price: " + str(price) + msg_rsi + msg_ema
+                msg = market_pairs +  "- Price: " + str(price) + msg_rsi + msg_ema
                 send_noti(msg, conf['telegram'])
             elif point_rsi < 0 and point_ema < 0:
-                msg = market_pairs + "- Point: " + str(point) + "- Price: " + str(price) + msg_rsi + msg_ema
+                msg = market_pairs + "- Price: " + str(price) + msg_rsi + msg_ema
                 send_noti(msg, conf['telegram'])
         print("Sleeping - timeframe 5m")
         time.sleep(100)
@@ -140,12 +143,14 @@ def timeframe_15m(conf, binance):
             point_ema, msg_ema = ema_adv(data_ohlc)
             point = point_rsi + point_ema
             price = data_ohlc.iloc[-1]['close']
-            if point > 1:
-                msg = market_pairs + "- Point: " + str(point) + "- Price: " + str(price) + msg_rsi + msg_ema
+            msg = ""
+            if point_rsi > 0 and point_ema > 0:
+                msg = market_pairs  + "- Price: " + str(price) + msg_rsi + msg_ema
                 send_noti(msg, conf['telegram'])
-            elif point < -1:
-                msg = market_pairs + "- Point: " + str(point) + "- Price: " + str(price) + msg_rsi + msg_ema
+            elif point_rsi < 0 and point_ema < 0:
+                msg = market_pairs  + "- Price: " + str(price) + msg_rsi + msg_ema
                 send_noti(msg,conf['telegram'])
+        #price(msg)
         print("Sleeping - Time frame 15m")
         time.sleep(300)
 
